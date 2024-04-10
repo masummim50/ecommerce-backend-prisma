@@ -20,6 +20,7 @@ const createStore = catchAsync(async (req: Request, res: Response) => {
 const getStore = catchAsync(async (req: Request, res: Response) => {
   const sellerId = (req as any).user.id;
   const store = await sellerService.getStore(sellerId);
+
   sendResponse(res, 200, true, "Store retrieved successfully", store);
 });
 

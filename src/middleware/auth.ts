@@ -9,8 +9,9 @@ const auth =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       //get authorization token
+      // console.log("consoling req.headers: ", req.headers);
       const token = req.headers.authorization?.split(" ")[1];
-      console.log("token from auth.ts file backend: ", token);
+      // console.log("token from auth.ts file backend: ", token);
       if (!token) {
         throw new ApiError(400, "You are not authorized");
       }
@@ -19,7 +20,6 @@ const auth =
       verifiedUser = jwtFunctions.verifyToken(token);
       (req as any).user = verifiedUser; // role  , userid
 
-      // role diye guard korar jnno
       if (requiredRoles.length && !requiredRoles.includes(verifiedUser.role)) {
         throw new ApiError(400, "You are not authorized");
       }

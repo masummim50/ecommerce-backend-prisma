@@ -11,6 +11,7 @@ const loginSeller = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const data = await authService.loginSeller(email, password);
+  res.cookie("accessToken", data.accessToken, { maxAge: 3600000 });
   sendResponse(res, 200, true, "seller logged In successfully", data);
 });
 
@@ -22,8 +23,9 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   console.log("user login controller: ", req.body);
   const { email, password } = req.body;
 
-  const token = await authService.loginUser(email, password);
-  sendResponse(res, 200, true, "user logged In successfully", token);
+  const data = await authService.loginUser(email, password);
+  res.cookie("accessToken", data.accessToken, { maxAge: 3600000 });
+  sendResponse(res, 200, true, "user logged In successfully", data);
 });
 
 export const authController = {

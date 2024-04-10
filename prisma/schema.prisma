@@ -24,18 +24,87 @@ model Seller {
 }
 
 model Store {
-  id          String @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String
-  seller      Seller @relation(fields: [sellerId], references: [id])
-  sellerId    String @unique
+  seller      Seller    @relation(fields: [sellerId], references: [id])
+  sellerId    String    @unique
+  products    Product[]
+  followers   User[]    @relation(name: "StoreFollowers")
+  orders      Order[]
 }
 
 model User {
+  id             String     @id @default(uuid())
+  name           String
+  email          String     @unique
+  password       String
+  address        String     @default("")
+  role           String     @default("customer")
+  reviews        Review[]
+  cart           CartItem[]
+  followedStores Store[]    @relation(name: "StoreFollowers")
+}
+
+model CartItem {
+  id       String  @id @default(uuid())
+  product  Product @relation(fields: [productId], references: [id])
+  quantity Int
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
+  productId String
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  price       Float
+  stock       Int
+  images      String[]
+  sales       Int         @default(0)
+  storeId     String
+  store       Store       @relation(fields: [storeId], references: [id])
+  reviews     Review[]
+  CartItem    CartItem[]
+  OrderItem   OrderItem[]
+}
+
+model Review {
+  id        String  @id @default(uuid())
+  content   String
+  rating    Int
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
   id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
-  address  String @default("")
-  role     String @default("customer")
+  quantity Int
+
+  orderId String // This will be used to store the reference ID of the order
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id     String      @id @default(uuid())
+  status OrderStatus
+  // Other fields related to the order
+
+  items   OrderItem[]
+  Store   Store?      @relation(fields: [storeId], references: [id])
+  storeId String?
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  COMPLETE
 }

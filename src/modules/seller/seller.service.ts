@@ -30,6 +30,11 @@ const createStore = async (sellerId: string, storeData: any) => {
 const getStore = async (sellerId: string) => {
   const store = await prisma.store.findFirst({
     where: { sellerId: sellerId },
+    include: {
+      products: true,
+      orders: true,
+      followers: true,
+    },
   });
   return store;
 };
