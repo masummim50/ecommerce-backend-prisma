@@ -58,10 +58,12 @@ model CartItem {
 
 model Product {
   id          String      @id @default(uuid())
-  name        String      @unique
+  name        String
   description String
   price       Float
   stock       Int
+  discount    Int         @default(0)
+  category    String
   images      String[]
   sales       Int         @default(0)
   storeId     String

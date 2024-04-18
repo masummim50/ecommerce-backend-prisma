@@ -8,7 +8,16 @@ const app = express();
 app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
-app.use("/api/v1", allRoutes);
+
+app.use(
+  "/api/v1",
+  // async (req, res, next) => {
+  //   setTimeout(() => {
+  //     next();
+  //   }, 1000);
+  // },
+  allRoutes
+);
 
 app.get("/", (req: Request, res: Response) => {
   res.sendFile(__dirname + "/index.html");
