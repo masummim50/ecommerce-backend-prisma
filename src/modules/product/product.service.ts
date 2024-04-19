@@ -49,6 +49,33 @@ const getProductsByCategory = async (category: string) => {
   return products;
 };
 
+const addProductToCart = async (userId: string, productId: string) => {
+  const addedResult = await prisma.cartItem.upsert({
+    where: {
+      userId_productId: {
+        userId: userId,
+        productId: productId,
+      },
+    },
+    update: {
+      quantity: { increment: 1 },
+    },
+    create: {
+      userId: userId,
+      productId: productId,
+      quantity: 1,
+    },
+  });
+  return addedResult;
+};
+
+const getCartItems = async (userId: string) => {
+  const products = await prisma.cartItem.findMany({
+    where: { userId: userId },
+  });
+  return products;
+};
+
 export const productService = {
   createProduct,
   getProductsByStoreId,
@@ -56,4 +83,6 @@ export const productService = {
   getPopularProducts,
   getProductById,
   getProductsByCategory,
+  addProductToCart,
+  getCartItems,
 };

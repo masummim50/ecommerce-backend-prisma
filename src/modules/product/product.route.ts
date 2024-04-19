@@ -7,6 +7,8 @@ import { sellerValidation } from "../seller/seller.validation";
 const productRoutes = express.Router();
 
 productRoutes.get("/popular", productController.getPopularProducts);
+productRoutes.get("/cart", auth("customer"), productController.getCartItems);
+
 productRoutes.get(
   "/category/:categoryname",
   productController.getProductsByCategory
@@ -17,6 +19,12 @@ productRoutes.post(
   auth("seller"),
   //   validateRequest(sellerValidation.storeCreateSchema),
   productController.createProduct
+);
+productRoutes.post(
+  "/addtocart/:id",
+  auth("customer"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  productController.addProductToCart
 );
 productRoutes.get(
   "/store/:id",

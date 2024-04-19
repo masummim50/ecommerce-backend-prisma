@@ -61,6 +61,19 @@ const getProductsByCategory = catchAsync(
   }
 );
 
+const addProductToCart = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.id;
+  const userId = (req as any).user.id;
+  const products = await productService.addProductToCart(userId, productId);
+  sendResponse(res, 200, true, "Product added to cart successfully", products);
+});
+
+const getCartItems = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const products = await productService.getCartItems(userId);
+  sendResponse(res, 200, true, "cart retrieved successfully", products);
+});
+
 export const productController = {
   createProduct,
   getProductsByStoreId,
@@ -68,4 +81,6 @@ export const productController = {
   getPopularProducts,
   getProductById,
   getProductsByCategory,
+  addProductToCart,
+  getCartItems,
 };

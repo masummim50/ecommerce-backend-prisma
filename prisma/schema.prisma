@@ -51,10 +51,13 @@ model CartItem {
   product  Product @relation(fields: [productId], references: [id])
   quantity Int
 
-  userId    String
+  userId    String 
   user      User   @relation(fields: [userId], references: [id])
-  productId String
+  productId String 
+
+  @@unique([userId,productId])
 }
+
 
 model Product {
   id          String      @id @default(uuid())
