@@ -23,7 +23,7 @@ app.get("/", (req: Request, res: Response) => {
   res.sendFile(__dirname + "/index.html");
 });
 app.use((req: Request, res: Response) => {
-  res.status(404).send({ message: "Route not found" });
+  res.status(404).send({ message: "Route not found", requested: req.url });
 });
 
 app.use(globalErrorHandler);

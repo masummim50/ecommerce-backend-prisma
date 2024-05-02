@@ -7,6 +7,7 @@ import { sellerValidation } from "../seller/seller.validation";
 const productRoutes = express.Router();
 
 productRoutes.get("/popular", productController.getPopularProducts);
+productRoutes.get("/newest", productController.getNewestProducts);
 productRoutes.get("/cart", auth("customer"), productController.getCartItems);
 
 productRoutes.get(
@@ -20,11 +21,22 @@ productRoutes.post(
   //   validateRequest(sellerValidation.storeCreateSchema),
   productController.createProduct
 );
+
 productRoutes.post(
   "/addtocart/:id",
   auth("customer"),
   //   validateRequest(sellerValidation.storeCreateSchema),
   productController.addProductToCart
+);
+productRoutes.post(
+  "/cart/increase/:id",
+  auth("customer"),
+  productController.increaseCart
+);
+productRoutes.post(
+  "/cart/decrease/:id",
+  auth("customer"),
+  productController.decreaseCart
 );
 productRoutes.get(
   "/store/:id",

@@ -14,13 +14,15 @@ datasource db {
 }
 
 model Seller {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  role     String @default("seller")
-  password String @default("")
-  address  String @default("")
-  store    Store?
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("seller")
+  password  String   @default("")
+  address   String   @default("")
+  store     Store?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Store {
@@ -32,6 +34,8 @@ model Store {
   products    Product[]
   followers   User[]    @relation(name: "StoreFollowers")
   orders      Order[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
 }
 
 model User {
@@ -44,6 +48,9 @@ model User {
   reviews        Review[]
   cart           CartItem[]
   followedStores Store[]    @relation(name: "StoreFollowers")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now()) @updatedAt
+  orders         Order[]
 }
 
 model CartItem {
@@ -51,60 +58,59 @@ model CartItem {
   product  Product @relation(fields: [productId], references: [id])
   quantity Int
 
-  userId    String 
-  user      User   @relation(fields: [userId], references: [id])
-  productId String 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-  @@unique([userId,productId])
+  @@unique([userId, productId])
 }
 
-
 model Product {
-  id          String      @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
   description String
   price       Float
   stock       Int
-  discount    Int         @default(0)
+  discount    Int        @default(0)
   category    String
   images      String[]
-  sales       Int         @default(0)
+  sales       Int        @default(0)
   storeId     String
-  store       Store       @relation(fields: [storeId], references: [id])
+  store       Store      @relation(fields: [storeId], references: [id])
   reviews     Review[]
   CartItem    CartItem[]
-  OrderItem   OrderItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
 }
 
 model Review {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   content   String
   rating    Int
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
-}
-
-model OrderItem {
-  id       String @id @default(uuid())
-  quantity Int
-
-  orderId String // This will be used to store the reference ID of the order
-  order   Order  @relation(fields: [orderId], references: [id])
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Order {
-  id     String      @id @default(uuid())
-  status OrderStatus
-  // Other fields related to the order
+  id            String @id @default(uuid())
+  status        String @default("pending")
+  storeId       String
+  paymentStatus String @default("due")
+  paymentMethod String @default("cash")
+  paymentAmount Float
+  userId        String
+  user          User   @relation(fields: [userId], references: [id])
+  Store         Store  @relation(fields: [storeId], references: [id]) // Optional relation to the Store model
 
-  items   OrderItem[]
-  Store   Store?      @relation(fields: [storeId], references: [id])
-  storeId String?
+  items     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 enum OrderStatus {

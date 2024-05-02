@@ -34,6 +34,10 @@ const getPopularProducts = catchAsync(async (req: Request, res: Response) => {
     products
   );
 });
+const getNewestProducts = catchAsync(async (req: Request, res: Response) => {
+  const products = await productService.getNewestProducts();
+  sendResponse(res, 200, true, "new products retrieved successfully", products);
+});
 
 const getProductById = catchAsync(async (req: Request, res: Response) => {
   const productId = req.params.id;
@@ -73,6 +77,16 @@ const getCartItems = catchAsync(async (req: Request, res: Response) => {
   const products = await productService.getCartItems(userId);
   sendResponse(res, 200, true, "cart retrieved successfully", products);
 });
+const increaseCart = catchAsync(async (req: Request, res: Response) => {
+  const cartItemId = req.params.id;
+  const products = await productService.increaseCart(cartItemId);
+  sendResponse(res, 200, true, "cart increased successfully", products);
+});
+const decreaseCart = catchAsync(async (req: Request, res: Response) => {
+  const cartItemId = req.params.id;
+  const products = await productService.decreaseCart(cartItemId);
+  sendResponse(res, 200, true, "cart decreased successfully", products);
+});
 
 export const productController = {
   createProduct,
@@ -83,4 +97,7 @@ export const productController = {
   getProductsByCategory,
   addProductToCart,
   getCartItems,
+  increaseCart,
+  decreaseCart,
+  getNewestProducts,
 };

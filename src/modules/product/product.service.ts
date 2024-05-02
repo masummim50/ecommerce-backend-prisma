@@ -42,6 +42,19 @@ const getPopularProducts = async () => {
   return products;
 };
 
+const getNewestProducts = async () => {
+  const products = await prisma.product.findMany({
+    take: 10,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      reviews: true,
+    },
+  });
+  return products;
+};
+
 const getProductsByCategory = async (category: string) => {
   const products = await prisma.product.findMany({
     where: { category: category },
@@ -69,9 +82,31 @@ const addProductToCart = async (userId: string, productId: string) => {
   return addedResult;
 };
 
+const increaseCart = async (cartItemId: string) => {
+  const result = await prisma.cartItem.update({
+    where: { id: cartItemId },
+    data: { quantity: { increment: 1 } },
+  });
+  return result;
+};
+
+const decreaseCart = async (cartItemId: string) => {
+  const result = await prisma.cartItem.update({
+    where: { id: cartItemId },
+    data: { quantity: { decrement: 1 } },
+  });
+  return result;
+};
+
 const getCartItems = async (userId: string) => {
   const products = await prisma.cartItem.findMany({
     where: { userId: userId },
+    include: {
+      product: {
+        include: { store: true },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
   });
   return products;
 };
@@ -85,4 +120,7 @@ export const productService = {
   getProductsByCategory,
   addProductToCart,
   getCartItems,
+  increaseCart,
+  decreaseCart,
+  getNewestProducts,
 };
