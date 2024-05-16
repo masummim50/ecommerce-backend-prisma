@@ -45,8 +45,15 @@ productRoutes.get(
 );
 productRoutes.delete(
   "/:id",
+  auth("seller"),
   //   validateRequest(sellerValidation.storeCreateSchema),
   productController.deleteProductById
+);
+productRoutes.patch(
+  "/:id",
+  auth("seller"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  productController.updateProductById
 );
 
 export default productRoutes;

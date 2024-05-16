@@ -17,6 +17,31 @@ orderRoutes.post(
   //   validateRequest(sellerValidation.storeCreateSchema),
   orderController.createOrder
 );
+orderRoutes.patch(
+  "/accept/:id",
+  auth("seller"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  orderController.acceptOrderById
+);
+orderRoutes.patch(
+  "/cancel/:id",
+  auth("seller"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  orderController.cancelOrderById
+);
+orderRoutes.patch(
+  "/ship/:id",
+  auth("seller"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  orderController.shipOrderById
+);
+orderRoutes.patch(
+  "/deliver/:id",
+  auth("customer"),
+  //   validateRequest(sellerValidation.storeCreateSchema),
+  orderController.deliverOrderById
+);
+
 orderRoutes.get(
   "/:id",
   auth("customer", "seller"),

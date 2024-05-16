@@ -13,10 +13,15 @@ const createProduct = async (sellerId: string, productData: any) => {
   console.log("new product created: ", result);
   return result;
 };
+
 const getProductsByStoreId = async (storeId: string) => {
-  const products = await prisma.product.findMany({ where: { storeId } });
+  const products = await prisma.product.findMany({
+    where: { storeId },
+    orderBy: { updatedAt: "desc" },
+  });
   return products;
 };
+
 const getProductById = async (productId: string) => {
   const product = await prisma.product.findUnique({
     where: { id: productId },
@@ -24,9 +29,25 @@ const getProductById = async (productId: string) => {
   });
   return product;
 };
+
 const deleteProductById = async (productId: string) => {
+  const deleteCartItems = await prisma.cartItem.deleteMany({
+    where: { productId: productId },
+  });
   const products = await prisma.product.delete({ where: { id: productId } });
+  console.log("delete products: ", products);
   return products;
+};
+const updateProductById = async (
+  productId: string,
+  sellerId: string,
+  data: any
+) => {
+  const update = await prisma.product.update({
+    where: { id: productId },
+    data,
+  });
+  return update;
 };
 
 const getPopularProducts = async () => {
@@ -123,4 +144,5 @@ export const productService = {
   increaseCart,
   decreaseCart,
   getNewestProducts,
+  updateProductById,
 };

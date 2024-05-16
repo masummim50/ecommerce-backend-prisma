@@ -24,6 +24,20 @@ const deleteProductById = catchAsync(async (req: Request, res: Response) => {
   const products = await productService.deleteProductById(productId);
   sendResponse(res, 200, true, "product deleted successfully", products);
 });
+
+const updateProductById = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.id;
+  const data = req.body;
+  const seller = (req as any).user.id;
+
+  const products = await productService.updateProductById(
+    productId,
+    seller,
+    data
+  );
+  sendResponse(res, 200, true, "product updated successfully", products);
+});
+
 const getPopularProducts = catchAsync(async (req: Request, res: Response) => {
   const products = await productService.getPopularProducts();
   sendResponse(
@@ -100,4 +114,5 @@ export const productController = {
   increaseCart,
   decreaseCart,
   getNewestProducts,
+  updateProductById,
 };

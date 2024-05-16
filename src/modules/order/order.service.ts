@@ -75,12 +75,54 @@ const getOrderDetails = async (
 const getOrdersBySellerId = async (sellerId: string) => {
   const orders = await prisma.order.findMany({
     where: { Store: { sellerId } },
+    orderBy: { updatedAt: "desc" },
   });
   return orders;
+};
+
+const acceptOrderById = async (orderId: string) => {
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "confirmed" },
+  });
+
+  console.log("after accepting: ", order);
+  (order.items as Prisma.JsonArray).forEach(async (item) => {
+    await prisma.product.update({
+      where: { id: item?.productId },
+      data: { stock: { decrement: item?.productQuantity } },
+    });
+  });
+  return order;
+};
+const cancleOrderById = async (orderId: string) => {
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "canceled" },
+  });
+  return order;
+};
+const shipOrderById = async (orderId: string) => {
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "shipped" },
+  });
+  return order;
+};
+const deliverOrderById = async (orderId: string) => {
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: "delivered" },
+  });
+  return order;
 };
 
 export const orderService = {
   createOrder,
   getOrderDetails,
   getOrdersBySellerId,
+  acceptOrderById,
+  cancleOrderById,
+  shipOrderById,
+  deliverOrderById,
 };
