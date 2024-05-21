@@ -13,6 +13,12 @@ sellerRoutes.get(
   auth("seller"),
   sellerController.getStore
 );
+sellerRoutes.get(
+  "/overview",
+  consoleroute("hitting seller/store"),
+  auth("seller"),
+  sellerController.getSellerOverview
+);
 sellerRoutes.get("/:id", sellerController.getSellerById);
 sellerRoutes.post(
   "/createstore",

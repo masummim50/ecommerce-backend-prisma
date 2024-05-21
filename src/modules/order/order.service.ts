@@ -9,8 +9,8 @@ const createOrder = async (items: any, userId: string) => {
   // }
   for (const [key, value] of Object.entries(items)) {
     let paymentAmount = 50;
-    let orders = [];
-    value.forEach((v) => {
+    let orders: any = [];
+    (value as any).forEach((v: any) => {
       paymentAmount = paymentAmount + v.price * v.quantity;
       orders.push({
         productId: v.id,
@@ -75,7 +75,7 @@ const getOrderDetails = async (
 const getOrdersBySellerId = async (sellerId: string) => {
   const orders = await prisma.order.findMany({
     where: { Store: { sellerId } },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { createdAt: "desc" },
   });
   return orders;
 };
@@ -87,10 +87,13 @@ const acceptOrderById = async (orderId: string) => {
   });
 
   console.log("after accepting: ", order);
-  (order.items as Prisma.JsonArray).forEach(async (item) => {
+  (order.items as Prisma.JsonArray).forEach(async (item: any) => {
     await prisma.product.update({
       where: { id: item?.productId },
-      data: { stock: { decrement: item?.productQuantity } },
+      data: {
+        stock: { decrement: item?.productQuantity },
+        sales: { increment: item?.productQuantity },
+      },
     });
   });
   return order;
