@@ -92,6 +92,7 @@ model Review {
   productId String
   product   Product  @relation(fields: [productId], references: [id])
   userId    String
+  orderId   String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

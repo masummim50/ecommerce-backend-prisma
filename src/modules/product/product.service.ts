@@ -132,6 +132,17 @@ const getCartItems = async (userId: string) => {
   return products;
 };
 
+const getProductDetailsForSeller = async (productId: string) => {
+  console.log("new api hitting");
+  const product = await prisma.product.findFirst({
+    where: { id: productId },
+    include: {
+      reviews: { include: { user: { select: { name: true } } } },
+    },
+  });
+  return product;
+};
+
 export const productService = {
   createProduct,
   getProductsByStoreId,
@@ -145,4 +156,5 @@ export const productService = {
   decreaseCart,
   getNewestProducts,
   updateProductById,
+  getProductDetailsForSeller,
 };

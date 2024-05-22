@@ -344,10 +344,12 @@ const getSellerOverview = async (sellerId: string) => {
     //else push and empty object to array
   });
 
+  console.log("recent orders: ", recentOrders);
+
   return {
     overview,
     chartOverviewArray,
-    recentOrders: recentOrders.slice(0, 3),
+    recentOrders: recentOrders.slice(-3),
   };
 };
 

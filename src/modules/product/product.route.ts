@@ -14,6 +14,10 @@ productRoutes.get(
   "/category/:categoryname",
   productController.getProductsByCategory
 );
+productRoutes.get(
+  "/forseller/:id",
+  productController.getProductDetailsForSeller
+);
 productRoutes.get("/:id", productController.getProductById);
 productRoutes.post(
   "/create",

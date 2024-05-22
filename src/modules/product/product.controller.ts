@@ -102,6 +102,20 @@ const decreaseCart = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, 200, true, "cart decreased successfully", products);
 });
 
+const getProductDetailsForSeller = catchAsync(
+  async (req: Request, res: Response) => {
+    const productId = req.params.id;
+    const product = await productService.getProductDetailsForSeller(productId);
+    sendResponse(
+      res,
+      200,
+      true,
+      "product details retrieved successfully",
+      product
+    );
+  }
+);
+
 export const productController = {
   createProduct,
   getProductsByStoreId,
@@ -115,4 +129,5 @@ export const productController = {
   decreaseCart,
   getNewestProducts,
   updateProductById,
+  getProductDetailsForSeller,
 };
