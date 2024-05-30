@@ -2,6 +2,12 @@ import { connect } from "http2";
 import ApiError from "../../shared/apiError";
 import excludeField from "../../shared/excludeField";
 import prisma from "../../shared/prisma";
+import {
+  getMetaData,
+  getPage,
+  getSkip,
+  getTotalPage,
+} from "../../helpers/paginationHelpers";
 
 const createProduct = async (sellerId: string, productData: any) => {
   const store = await prisma.store.findFirst({ where: { sellerId: sellerId } });
@@ -14,12 +20,108 @@ const createProduct = async (sellerId: string, productData: any) => {
   return result;
 };
 
-const getProductsByStoreId = async (storeId: string) => {
-  const products = await prisma.product.findMany({
-    where: { storeId },
-    orderBy: { updatedAt: "desc" },
+const getProductsByStoreId = async (
+  storeId: string,
+  query: { query: string; page: string }
+) => {
+  const searchText = query.query || "";
+  const page = Number(query.page) || 1;
+  const searchWords = searchText.trim().replace(/ /g, " | ");
+
+  const take = 5;
+  const skip = (page - 1) * take;
+
+  if (searchWords) {
+    const count = await prisma.product.count({
+      where: {
+        storeId,
+        AND: [
+          {
+            OR: [
+              { name: { search: searchWords } },
+              { category: { search: searchWords } },
+            ],
+          },
+        ],
+      },
+    });
+    const products = await prisma.product.findMany({
+      where: {
+        storeId,
+        AND: [
+          {
+            OR: [
+              { name: { search: searchWords } },
+              { category: { search: searchWords } },
+            ],
+          },
+        ],
+      },
+      include: { reviews: { select: { rating: true } } },
+      orderBy: { updatedAt: "desc" },
+      take,
+      skip,
+    });
+
+    const totalPages = Math.ceil(count / take);
+
+    return { products, total: count, totalPages, skip, take };
+  } else {
+    const count = await prisma.product.count({
+      where: {
+        storeId,
+      },
+    });
+
+    const totalPages = Math.ceil(count / take);
+    const products = await prisma.product.findMany({
+      where: {
+        storeId,
+      },
+      include: { reviews: { select: { rating: true } } },
+      orderBy: { updatedAt: "desc" },
+      take,
+      skip,
+    });
+    return { products, total: count, totalPages, skip, take };
+  }
+};
+
+const getProductsWithSearchWords = async (query: {
+  query: string;
+  page: number;
+}) => {
+  const searchText = query.query || "";
+  const searchWords = searchText.trim().replace(/ /g, " | ");
+
+  const take = 5;
+  const skip = (query.page - 1) * take;
+
+  const count = await prisma.product.count({
+    where: {
+      OR: [
+        { name: { search: searchWords } },
+        { category: { search: searchWords } },
+      ],
+    },
   });
-  return products;
+  const products = await prisma.product.findMany({
+    where: {
+      OR: [
+        { name: { search: searchWords } },
+        { category: { search: searchWords } },
+      ],
+    },
+    include: { reviews: { select: { rating: true } } },
+    orderBy: { updatedAt: "desc" },
+    take,
+    skip,
+  });
+
+  const totalPage = getTotalPage(count, 10);
+  const meta = getMetaData(query.page, 10, count, totalPage);
+
+  return { products, meta };
 };
 
 const getProductById = async (productId: string) => {
@@ -50,9 +152,13 @@ const updateProductById = async (
   return update;
 };
 
-const getPopularProducts = async () => {
+const getPopularProducts = async (page: number) => {
+  const skip = getSkip(page, 10);
+  const count = await prisma.product.count({ where: { sales: { gt: 1 } } });
   const products = await prisma.product.findMany({
+    where: { sales: { gt: 1 } },
     take: 10,
+    skip: skip,
     orderBy: {
       sales: "desc",
     },
@@ -60,11 +166,18 @@ const getPopularProducts = async () => {
       reviews: true,
     },
   });
-  return products;
+  const totalPage = getTotalPage(count, 10);
+  const meta = getMetaData(page, 10, count, totalPage);
+  console.log("meta data: ", meta);
+  return { products, meta };
 };
 
-const getNewestProducts = async () => {
+const getNewestProducts = async (page: number) => {
+  const date = new Date();
+  date.setDate(-10);
+  const count = await prisma.product.count();
   const products = await prisma.product.findMany({
+    where: { createdAt: { gt: date } },
     take: 10,
     orderBy: {
       createdAt: "desc",
@@ -73,14 +186,29 @@ const getNewestProducts = async () => {
       reviews: true,
     },
   });
-  return products;
+  const totalPage = getTotalPage(count, 10);
+  const meta = getMetaData(page, 10, count, totalPage);
+
+  return { products, meta };
 };
 
-const getProductsByCategory = async (category: string) => {
+const getProductsByCategory = async (
+  category: string,
+  take: number,
+  skip: number
+) => {
+  console.log("hitting get products by category with page: ", take, " ", skip);
+  const count = (
+    await prisma.product.findMany({ where: { category: category } })
+  ).length;
+  // calculate how many pages there will be?
+  const totalPages = Math.ceil(count / take);
   const products = await prisma.product.findMany({
     where: { category: category },
+    take,
+    skip,
   });
-  return products;
+  return { products, total: count, totalPages };
 };
 
 const addProductToCart = async (userId: string, productId: string) => {
@@ -143,6 +271,20 @@ const getProductDetailsForSeller = async (productId: string) => {
   return product;
 };
 
+const getProductsFromStoreForUser = async (storeId: string, page: number) => {
+  const count = await prisma.product.count({ where: { storeId } });
+  const take = 10;
+  const skip = getSkip(page, 10);
+  const products = await prisma.product.findMany({
+    where: { storeId },
+    take,
+    skip,
+  });
+  const totalPage = getTotalPage(count, 10);
+  const meta = getMetaData(page, 10, count, totalPage);
+  return { products, meta };
+};
+
 export const productService = {
   createProduct,
   getProductsByStoreId,
@@ -157,4 +299,6 @@ export const productService = {
   getNewestProducts,
   updateProductById,
   getProductDetailsForSeller,
+  getProductsWithSearchWords,
+  getProductsFromStoreForUser,
 };

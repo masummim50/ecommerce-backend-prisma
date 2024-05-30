@@ -37,9 +37,27 @@ const getSellerOverview = catchAsync(async (req: Request, res: Response) => {
   );
 });
 
+const updateStoreById = catchAsync(async (req: Request, res: Response) => {
+  const sellerId = (req as any).user.id;
+  const storeId = req.params.id;
+  const data = req.body;
+  const overview = await sellerService.updateStoreById(storeId, sellerId, data);
+
+  sendResponse(res, 200, true, "Store info updated successfully", overview);
+});
+
+const getStoreById = catchAsync(async (req: Request, res: Response) => {
+  const storeId = req.params.id;
+  const store = await sellerService.getStoreById(storeId);
+
+  sendResponse(res, 200, true, "Store info retrieved successfully", store);
+});
+
 export const sellerController = {
   getSellerById,
   createStore,
   getStore,
   getSellerOverview,
+  updateStoreById,
+  getStoreById,
 };

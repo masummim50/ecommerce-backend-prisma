@@ -353,9 +353,37 @@ const getSellerOverview = async (sellerId: string) => {
   };
 };
 
+const updateStoreById = async (
+  storeId: string,
+  sellerId: string,
+  data: any
+) => {
+  const update = await prisma.store.update({
+    where: { id: storeId, sellerId },
+    data,
+  });
+  return update;
+};
+
+const getStoreById = async (storeId: string) => {
+  const store = await prisma.store.findFirst({
+    where: { id: storeId },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      followers: { select: { id: true } },
+      products: { select: { reviews: { select: { rating: true } } } },
+    },
+  });
+  return store;
+};
+
 export const sellerService = {
   getSellerById,
   createStore,
   getStore,
   getSellerOverview,
+  updateStoreById,
+  getStoreById,
 };

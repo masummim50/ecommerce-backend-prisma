@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 type apiResponseType<T> = {
   statusCode: number;
@@ -40,8 +40,8 @@ const sendResponse = <T>(
     success: success,
     statusCode: statusCode,
     message: message || null,
-    meta: meta || null || undefined,
     data: data || null || undefined,
+    meta: meta || null || undefined,
     token: token,
   };
 

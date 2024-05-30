@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { productService } from "./product.service";
+import { getPage } from "../../helpers/paginationHelpers";
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
   const sellerId = (req as any).user.id;
@@ -11,11 +12,22 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   const store = await productService.createProduct(sellerId, productData);
   sendResponse(res, 200, true, "product created successfully", store);
 });
+
 const getProductsByStoreId = catchAsync(async (req: Request, res: Response) => {
   const storeId = req.params.id;
+  const query = req.query;
 
-  const products = await productService.getProductsByStoreId(storeId);
-  sendResponse(res, 200, true, "products retrieved successfully", products);
+  const { products, take, total, totalPages } =
+    await productService.getProductsByStoreId(
+      storeId,
+      query as { query: string; page: string }
+    );
+  sendResponse(res, 200, true, "products retrieved successfully", products, {
+    page: Number(req.query.page),
+    size: take,
+    total: total,
+    totalPage: totalPages,
+  });
 });
 
 const deleteProductById = catchAsync(async (req: Request, res: Response) => {
@@ -39,18 +51,28 @@ const updateProductById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPopularProducts = catchAsync(async (req: Request, res: Response) => {
-  const products = await productService.getPopularProducts();
+  const page = getPage(req.query);
+  const { products, meta } = await productService.getPopularProducts(page);
   sendResponse(
     res,
     200,
     true,
     "popular products retrieved successfully",
-    products
+    products,
+    meta
   );
 });
 const getNewestProducts = catchAsync(async (req: Request, res: Response) => {
-  const products = await productService.getNewestProducts();
-  sendResponse(res, 200, true, "new products retrieved successfully", products);
+  const page = getPage(req.query);
+  const { products, meta } = await productService.getNewestProducts(page);
+  sendResponse(
+    res,
+    200,
+    true,
+    "new products retrieved successfully",
+    products,
+    meta
+  );
 });
 
 const getProductById = catchAsync(async (req: Request, res: Response) => {
@@ -66,15 +88,28 @@ const getProductById = catchAsync(async (req: Request, res: Response) => {
 });
 const getProductsByCategory = catchAsync(
   async (req: Request, res: Response) => {
+    console.log("params: ", req.params, " query?: ", req.query);
     const category = req.params.categoryname;
-    console.log("running category: ", category);
-    const products = await productService.getProductsByCategory(category);
+
+    const page = Number(req.query.page as string) || 1;
+
+    const take = 5;
+    const skip = (page - 1) * take;
+
+    const { products, total, totalPages } =
+      await productService.getProductsByCategory(category, take, skip);
     sendResponse(
       res,
       200,
       true,
       "related products retrieved successfully",
-      products
+      products,
+      {
+        page: Number(req.query.page),
+        size: take,
+        total: total,
+        totalPage: totalPages,
+      }
     );
   }
 );
@@ -116,6 +151,44 @@ const getProductDetailsForSeller = catchAsync(
   }
 );
 
+const getProductsWithSearchWords = catchAsync(
+  async (req: Request, res: Response) => {
+    const query = req.query?.query || "";
+    const page = getPage(req.query.page || "1");
+    const param = { query, page };
+    const { products, meta } = await productService.getProductsWithSearchWords(
+      param as { query: string; page: number }
+    );
+    sendResponse(
+      res,
+      200,
+      true,
+      "products retrieved successfully",
+      products,
+      meta
+    );
+  }
+);
+
+const getProductsFromStoreForUser = catchAsync(
+  async (req: Request, res: Response) => {
+    const storeId = req.params.id;
+    const page = getPage(req.query.page || "1");
+    const { products, meta } = await productService.getProductsFromStoreForUser(
+      storeId,
+      page
+    );
+    sendResponse(
+      res,
+      200,
+      true,
+      "products retrieved successfully",
+      products,
+      meta
+    );
+  }
+);
+
 export const productController = {
   createProduct,
   getProductsByStoreId,
@@ -130,4 +203,6 @@ export const productController = {
   getNewestProducts,
   updateProductById,
   getProductDetailsForSeller,
+  getProductsWithSearchWords,
+  getProductsFromStoreForUser,
 };

@@ -26,7 +26,26 @@ const getOrdersByUserId = async (userId: string) => {
   return orders;
 };
 
+const followStore = async (storeId: string, userId: string) => {
+  const update = await prisma.store.update({
+    where: { id: storeId },
+    data: { followers: { connect: { id: userId } } },
+  });
+
+  return update;
+};
+const unFollowStore = async (storeId: string, userId: string) => {
+  const update = await prisma.store.update({
+    where: { id: storeId },
+    data: { followers: { disconnect: { id: userId } } },
+  });
+
+  return update;
+};
+
 export const userService = {
   getUserById,
   getOrdersByUserId,
+  followStore,
+  unFollowStore,
 };

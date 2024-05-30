@@ -13,6 +13,7 @@ sellerRoutes.get(
   auth("seller"),
   sellerController.getStore
 );
+sellerRoutes.get("/store/:id", sellerController.getStoreById);
 sellerRoutes.get(
   "/overview",
   consoleroute("hitting seller/store"),
@@ -25,6 +26,11 @@ sellerRoutes.post(
   auth("seller"),
   validateRequest(sellerValidation.storeCreateSchema),
   sellerController.createStore
+);
+sellerRoutes.patch(
+  "/updatestore/:id",
+  auth("seller"),
+  sellerController.updateStoreById
 );
 
 export default sellerRoutes;
