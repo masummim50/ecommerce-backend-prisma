@@ -87,15 +87,14 @@ const getProductsByStoreId = async (
   }
 };
 
-const getProductsWithSearchWords = async (query: {
-  query: string;
-  page: number;
-}) => {
-  const searchText = query.query || "";
+const getProductsWithSearchWords = async (
+  searchText: string,
+  page: number,
+  skip: number,
+  take: number
+) => {
+  console.log("starting search with keywords: ", page);
   const searchWords = searchText.trim().replace(/ /g, " | ");
-
-  const take = 5;
-  const skip = (query.page - 1) * take;
 
   const count = await prisma.product.count({
     where: {
@@ -114,12 +113,12 @@ const getProductsWithSearchWords = async (query: {
     },
     include: { reviews: { select: { rating: true } } },
     orderBy: { updatedAt: "desc" },
-    take,
     skip,
+    take,
   });
 
-  const totalPage = getTotalPage(count, 10);
-  const meta = getMetaData(query.page, 10, count, totalPage);
+  const totalPage = getTotalPage(count, take);
+  const meta = getMetaData(page, take, count, totalPage);
 
   return { products, meta };
 };
@@ -152,12 +151,11 @@ const updateProductById = async (
   return update;
 };
 
-const getPopularProducts = async (page: number) => {
-  const skip = getSkip(page, 10);
+const getPopularProducts = async (page: number, take: number, skip: number) => {
   const count = await prisma.product.count({ where: { sales: { gt: 1 } } });
   const products = await prisma.product.findMany({
     where: { sales: { gt: 1 } },
-    take: 10,
+    take: take,
     skip: skip,
     orderBy: {
       sales: "desc",
@@ -166,19 +164,18 @@ const getPopularProducts = async (page: number) => {
       reviews: true,
     },
   });
-  const totalPage = getTotalPage(count, 10);
-  const meta = getMetaData(page, 10, count, totalPage);
-  console.log("meta data: ", meta);
+  const totalPage = getTotalPage(count, take);
+  const meta = getMetaData(page, take, count, totalPage);
   return { products, meta };
 };
 
-const getNewestProducts = async (page: number) => {
+const getNewestProducts = async (page: number, take: number, skip: number) => {
   const date = new Date();
   date.setDate(-10);
   const count = await prisma.product.count();
   const products = await prisma.product.findMany({
-    where: { createdAt: { gt: date } },
-    take: 10,
+    skip,
+    take,
     orderBy: {
       createdAt: "desc",
     },
@@ -186,8 +183,8 @@ const getNewestProducts = async (page: number) => {
       reviews: true,
     },
   });
-  const totalPage = getTotalPage(count, 10);
-  const meta = getMetaData(page, 10, count, totalPage);
+  const totalPage = getTotalPage(count, take);
+  const meta = getMetaData(page, take, count, totalPage);
 
   return { products, meta };
 };
@@ -197,7 +194,6 @@ const getProductsByCategory = async (
   take: number,
   skip: number
 ) => {
-  console.log("hitting get products by category with page: ", take, " ", skip);
   const count = (
     await prisma.product.findMany({ where: { category: category } })
   ).length;
@@ -271,14 +267,36 @@ const getProductDetailsForSeller = async (productId: string) => {
   return product;
 };
 
-const getProductsFromStoreForUser = async (storeId: string, page: number) => {
+const getProductsFromStoreForUser = async (
+  storeId: string,
+  page: number,
+  take: number
+) => {
+  console.log("hitting product service with page: ", page);
   const count = await prisma.product.count({ where: { storeId } });
-  const take = 10;
-  const skip = getSkip(page, 10);
+
+  const skip = getSkip(page, take);
+  console.log("skipping: ", skip);
   const products = await prisma.product.findMany({
     where: { storeId },
-    take,
     skip,
+    take,
+  });
+  const totalPage = getTotalPage(count, 10);
+  const meta = getMetaData(page, 10, count, totalPage);
+  return { products, meta };
+};
+
+const getDiscountedProducts = async (page: number, take: number) => {
+  console.log("hitting product service with page: ", page);
+  const count = await prisma.product.count({ where: { discount: { gt: 0 } } });
+
+  const skip = getSkip(page, take);
+  console.log("skipping: ", skip);
+  const products = await prisma.product.findMany({
+    where: { discount: { gt: 0 } },
+    skip,
+    take,
   });
   const totalPage = getTotalPage(count, 10);
   const meta = getMetaData(page, 10, count, totalPage);
@@ -301,4 +319,5 @@ export const productService = {
   getProductDetailsForSeller,
   getProductsWithSearchWords,
   getProductsFromStoreForUser,
+  getDiscountedProducts,
 };

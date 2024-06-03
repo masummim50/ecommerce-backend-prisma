@@ -7,10 +7,14 @@ import { sellerValidation } from "../seller/seller.validation";
 const productRoutes = express.Router();
 
 productRoutes.get("/popular", productController.getPopularProducts);
+productRoutes.get("/discounted", productController.getDiscountedProducts);
 productRoutes.get("/search", productController.getProductsWithSearchWords);
 productRoutes.get("/newest", productController.getNewestProducts);
 productRoutes.get("/cart", auth("customer"), productController.getCartItems);
-productRoutes.get("/getfromstore/:id",  productController.getProductsFromStoreForUser);
+productRoutes.get(
+  "/getfromstore/:id",
+  productController.getProductsFromStoreForUser
+);
 
 productRoutes.get(
   "/category/:categoryname",

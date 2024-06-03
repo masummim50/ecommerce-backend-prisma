@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { productService } from "./product.service";
-import { getPage } from "../../helpers/paginationHelpers";
+import { getPage, getSkip } from "../../helpers/paginationHelpers";
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
   const sellerId = (req as any).user.id;
@@ -52,7 +52,14 @@ const updateProductById = catchAsync(async (req: Request, res: Response) => {
 
 const getPopularProducts = catchAsync(async (req: Request, res: Response) => {
   const page = getPage(req.query);
-  const { products, meta } = await productService.getPopularProducts(page);
+  const limit = 10;
+  const skip = getSkip(page, limit);
+
+  const { products, meta } = await productService.getPopularProducts(
+    page,
+    limit,
+    skip
+  );
   sendResponse(
     res,
     200,
@@ -64,7 +71,13 @@ const getPopularProducts = catchAsync(async (req: Request, res: Response) => {
 });
 const getNewestProducts = catchAsync(async (req: Request, res: Response) => {
   const page = getPage(req.query);
-  const { products, meta } = await productService.getNewestProducts(page);
+  const take = 10;
+  const skip = getSkip(page, take);
+  const { products, meta } = await productService.getNewestProducts(
+    page,
+    take,
+    skip
+  );
   sendResponse(
     res,
     200,
@@ -154,10 +167,15 @@ const getProductDetailsForSeller = catchAsync(
 const getProductsWithSearchWords = catchAsync(
   async (req: Request, res: Response) => {
     const query = req.query?.query || "";
-    const page = getPage(req.query.page || "1");
-    const param = { query, page };
+    const page = getPage(req.query);
+    console.log("calculated page: ", page);
+    const skip = 5;
+    const take = 5;
     const { products, meta } = await productService.getProductsWithSearchWords(
-      param as { query: string; page: number }
+      query as string,
+      page,
+      skip,
+      take
     );
     sendResponse(
       res,
@@ -173,16 +191,37 @@ const getProductsWithSearchWords = catchAsync(
 const getProductsFromStoreForUser = catchAsync(
   async (req: Request, res: Response) => {
     const storeId = req.params.id;
-    const page = getPage(req.query.page || "1");
+    const page = getPage(req.query);
+    const take = 10;
     const { products, meta } = await productService.getProductsFromStoreForUser(
       storeId,
-      page
+      page,
+      take
     );
     sendResponse(
       res,
       200,
       true,
       "products retrieved successfully",
+      products,
+      meta
+    );
+  }
+);
+
+const getDiscountedProducts = catchAsync(
+  async (req: Request, res: Response) => {
+    const page = getPage(req.query);
+    const take = 10;
+    const { products, meta } = await productService.getDiscountedProducts(
+      page,
+      take
+    );
+    sendResponse(
+      res,
+      200,
+      true,
+      "discounted products retrieved successfully",
       products,
       meta
     );
@@ -205,4 +244,5 @@ export const productController = {
   getProductDetailsForSeller,
   getProductsWithSearchWords,
   getProductsFromStoreForUser,
+  getDiscountedProducts,
 };

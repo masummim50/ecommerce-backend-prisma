@@ -11,11 +11,11 @@ app.use(express.json());
 
 app.use(
   "/api/v1",
-  // async (req, res, next) => {
-  //   setTimeout(() => {
-  //     next();
-  //   }, 1000);
-  // },
+  async (req, res, next) => {
+    setTimeout(() => {
+      next();
+    }, 2000);
+  },
   allRoutes
 );
 
